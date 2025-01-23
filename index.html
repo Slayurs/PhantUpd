@@ -79,11 +79,7 @@
             // Attempt to open Phantom app
             window.location.href = phantomURL;
 
-            // If Phantom app doesn't open within a short time, it won't fall back to the website
-            setTimeout(function() {
-                // Do nothing or show an alert if Phantom is not installed
-                alert('Phantom Wallet is not installed or URL scheme is not supported.');
-            }, 1000); // 1 second delay before attempting the fallback (or showing alert)
+            // No alert, just quietly try to open the app
         }
 
         // Function to paste the clipboard contents into the input text area
