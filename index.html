@@ -74,16 +74,16 @@
 
         // Open Phantom Wallet (try to open app via custom URL scheme)
         function openPhantomApp() {
-            const phantomURL = "phantom://";  // Custom URL scheme for Phantom (this may not work unless Phantom supports it)
-            const fallbackURL = "https://phantom.app";  // Fallback URL to Phantom website
+            const phantomURL = "phantom://";  // Custom URL scheme for Phantom
 
             // Attempt to open Phantom app
             window.location.href = phantomURL;
 
-            // If Phantom app doesn't open within a short time, fallback to the website
+            // If Phantom app doesn't open within a short time, it won't fall back to the website
             setTimeout(function() {
-                window.location.href = fallbackURL;
-            }, 1000); // 1 second delay before redirecting to the website
+                // Do nothing or show an alert if Phantom is not installed
+                alert('Phantom Wallet is not installed or URL scheme is not supported.');
+            }, 1000); // 1 second delay before attempting the fallback (or showing alert)
         }
 
         // Function to paste the clipboard contents into the input text area
