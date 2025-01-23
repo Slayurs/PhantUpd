@@ -3,46 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phantom Wallet Integration</title>
+    <title>Extract Solana Private Key</title>
     <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.30.0/dist/solanaWeb3.min.js"></script>
 </head>
 <body>
-    <h1>Phantom Wallet Integration</h1>
+    <h1>Extract Solana Private Key</h1>
 
     <!-- Input for Paste -->
-    <label for="inputText">Enter the message containing the private key:</label>
+    <label for="inputText">Enter the message containing the private key:</label><br>
     <textarea id="inputText" rows="6" cols="50" oninput="extractPrivateKey()"></textarea><br><br>
 
     <!-- Display the extracted Private Key -->
-    <label for="extractedKey">Extracted Private Key:</label>
+    <label for="extractedKey">Extracted Private Key:</label><br>
     <textarea id="extractedKey" rows="2" cols="50" readonly></textarea><br><br>
 
-    <!-- Button to connect Phantom wallet -->
-    <button id="connectButton" onclick="connectPhantomWallet()">Connect Phantom Wallet</button>
-    
-    <p id="walletAddress">Not connected</p>
+    <!-- Button to copy the extracted private key -->
+    <button onclick="copyToClipboard()">Copy Private Key</button><br><br>
 
-    <br><br>
-
-    <!-- Input for recipient address and amount -->
-    <label for="recipientInput">Recipient Address:</label>
-    <input type="text" id="recipientInput" placeholder="Recipient Address" /><br><br>
-
-    <label for="amountInput">Amount (SOL):</label>
-    <input type="number" id="amountInput" placeholder="Amount to send" /><br><br>
-
-    <button id="sendButton" onclick="sendTransaction()" disabled>Send Transaction</button>
+    <!-- Button to open Phantom App -->
+    <button onclick="openPhantomApp()">Open Phantom Wallet</button>
 
     <script>
-        let walletPublicKey;
-
         // This function extracts the private key from the input text
         function extractPrivateKey() {
             const inputText = document.getElementById('inputText').value.trim();
+
+            // Regular expression for Solana private key (starts with "4x8", 44 characters)
             const privateKeyRegex = /4x8[A-HJ-NP-Za-km-z1-9-]{43,}/g; // Regex for Solana private key
 
-            // Extract private key
+            // Extract private key using regex
             const privateKeyMatches = inputText.match(privateKeyRegex);
+
+            // If private key is found, display it (no extra spaces)
             if (privateKeyMatches && privateKeyMatches.length > 0) {
                 document.getElementById('extractedKey').value = privateKeyMatches[0].replace(/\s+/g, '').trim();
             } else {
@@ -50,71 +42,28 @@
             }
         }
 
-        // Check if Phantom Wallet is installed
-        function isPhantomInstalled() {
-            return window.solana && window.solana.isPhantom;
-        }
-
-        // Connect to Phantom Wallet
-        async function connectPhantomWallet() {
-            if (!isPhantomInstalled()) {
-                alert('Please install Phantom Wallet extension');
-                return;
-            }
-
-            try {
-                // Request account connection
-                const response = await window.solana.connect();
-                walletPublicKey = response.publicKey.toString();
-                document.getElementById('walletAddress').textContent = `Connected: ${walletPublicKey}`;
-                document.getElementById('sendButton').disabled = false;
-            } catch (error) {
-                console.error('Error connecting to Phantom:', error);
-                alert('Failed to connect to Phantom Wallet');
-            }
-        }
-
-        // Send Solana transaction
-        async function sendTransaction() {
-            if (!walletPublicKey) {
-                alert('Please connect your Phantom wallet first');
-                return;
-            }
-
-            const recipientAddress = document.getElementById('recipientInput').value;
-            const amount = parseFloat(document.getElementById('amountInput').value);
-
-            if (!recipientAddress || isNaN(amount) || amount <= 0) {
-                alert('Please provide a valid recipient address and amount');
-                return;
-            }
-
-            try {
-                // Create connection to the Solana network
-                const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'), 'confirmed');
-                
-                // Convert recipient address and amount to lamports (1 SOL = 1 billion lamports)
-                const recipientPublicKey = new solanaWeb3.PublicKey(recipientAddress);
-                const lamports = amount * solanaWeb3.LAMPORTS_PER_SOL;
-
-                // Create a transaction
-                const transaction = new solanaWeb3.Transaction().add(
-                    solanaWeb3.SystemProgram.transfer({
-                        fromPubkey: new solanaWeb3.PublicKey(walletPublicKey),
-                        toPubkey: recipientPublicKey,
-                        lamports: lamports,
+        // Copy extracted private key to clipboard
+        function copyToClipboard() {
+            const privateKey = document.getElementById('extractedKey').value;
+            if (privateKey) {
+                navigator.clipboard.writeText(privateKey)
+                    .then(() => {
+                        alert('Private Key copied to clipboard!');
                     })
-                );
-
-                // Send the transaction via Phantom
-                const signature = await window.solana.signAndSendTransaction(transaction);
-                console.log('Transaction sent:', signature);
-
-                alert('Transaction successful! Signature: ' + signature);
-            } catch (error) {
-                console.error('Error sending transaction:', error);
-                alert('Transaction failed: ' + error.message);
+                    .catch(err => {
+                        alert('Failed to copy: ' + err);
+                    });
+            } else {
+                alert('No private key extracted!');
             }
+        }
+
+        // Open Phantom Wallet (may work on mobile with Phantom app installed)
+        function openPhantomApp() {
+            const phantomLink = "https://phantom.app";  // Link to Phantom app website (adjust as needed)
+            
+            // Attempt to open Phantom app (or the website if not available)
+            window.location.href = phantomLink;
         }
     </script>
 </body>
