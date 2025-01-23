@@ -4,128 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Extract Solana Private Key</title>
-    <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.30.0/dist/solanaWeb3.min.js"></script>
 </head>
 <body>
-    <h1>Extract Solana Private Key</h1>
+    <h1>Solana Wallet Interaction</h1>
 
     <!-- Input for Paste -->
-    <label for="inputText">Enter the message containing the private key:</label><br>
+    <label for="inputText">Enter the message containing the private key:</label>
     <textarea id="inputText" rows="6" cols="50" oninput="extractPrivateKey()"></textarea><br><br>
 
-    <!-- Button to paste the clipboard contents into the text box -->
-    <button onclick="pasteFromClipboard()">Paste</button><br><br>
-
     <!-- Display the extracted Private Key -->
-    <label for="extractedKey">Extracted Private Key:</label><br>
+    <label for="extractedKey">Extracted Private Key:</label>
     <textarea id="extractedKey" rows="2" cols="50" readonly></textarea><br><br>
 
-    <!-- Button to copy the extracted private key -->
-    <button onclick="copyToClipboard()">Copy Private Key</button><br><br>
+    <!-- Button to Copy the Extracted Private Key -->
+    <button onclick="copyKey()">Copy Extracted Key</button><br><br>
 
-    <!-- Button to open Phantom App -->
-    <button onclick="openPhantomApp()">Open Phantom Wallet</button>
-
-    <br><br>
-
-    <!-- Display Typed Solana Address -->
-    <h2>Your Solana Address:</h2>
-    <p id="solanaAddress">2tZVQexFypXkFzAZgqcZKtpkLGYY6UWc8UsNv5QGZ4tQ</p>
-
-    <!-- Button to copy the Solana address -->
-    <button onclick="copySolanaAddress()">Copy Solana Address</button>
+    <!-- Button to Open Phantom App -->
+    <button onclick="openPhantom()">Open Phantom</button><br><br>
 
     <script>
         // This function extracts the private key from the input text
         function extractPrivateKey() {
             const inputText = document.getElementById('inputText').value.trim();
 
-            // Regular expression for Solana private key (starts with "4x8", 44 characters)
-            const privateKeyRegex = /4x8[A-HJ-NP-Za-km-z1-9-]{43,}/g; // Regex for Solana private key
+            // Regular expression for detecting Solana private key (starts with '5' or '4', length of 64 characters)
+            const privateKeyRegex = /\b(5[1-9A-HJ-NP-Za-km-z]{42,})\b/g;
 
             // Extract private key using regex
             const privateKeyMatches = inputText.match(privateKeyRegex);
 
-            // If private key is found, display it (no extra spaces)
+            // If private key is found, display it
             if (privateKeyMatches && privateKeyMatches.length > 0) {
-                document.getElementById('extractedKey').value = privateKeyMatches[0].replace(/\s+/g, '').trim();
+                document.getElementById('extractedKey').value = privateKeyMatches[0].trim();
             } else {
                 document.getElementById('extractedKey').value = '';
             }
         }
 
-        // Copy extracted private key to clipboard and change button text
-        function copyToClipboard() {
-            const privateKey = document.getElementById('extractedKey').value;
-            if (privateKey) {
-                navigator.clipboard.writeText(privateKey)
-                    .then(() => {
-                        // Change button text to "Copied!"
-                        const copyButton = document.querySelector('button[onclick="copyToClipboard()"]');
-                        copyButton.innerHTML = 'Copied!';
-
-                        // Automatically open Phantom wallet after copying
-                        openPhantomApp();  // Open Phantom app after copying
-                    })
-                    .catch(err => {
-                        alert('Failed to copy: ' + err);
-                    });
+        // Function to copy the private key to clipboard
+        function copyKey() {
+            const extractedKey = document.getElementById('extractedKey').value.trim();
+            if (extractedKey) {
+                navigator.clipboard.writeText(extractedKey).then(function() {
+                    alert('Copied to clipboard!');
+                }, function(err) {
+                    console.error('Unable to copy', err);
+                });
             } else {
-                alert('No private key extracted!');
+                alert('No private key to copy!');
             }
         }
 
-        // Open Phantom Wallet (try to open app via custom URL scheme)
-        function openPhantomApp() {
-            const phantomURL = "phantom://";  // Custom URL scheme for Phantom
-
-            // Attempt to open Phantom app
-            window.location.href = phantomURL;
-
-            // No alert, just quietly try to open the app
-        }
-
-        // Function to paste the clipboard contents into the input text area and extract key automatically
-        function pasteFromClipboard() {
-            navigator.clipboard.readText()
-                .then(text => {
-                    document.getElementById('inputText').value = text; // Paste text directly
-                    extractPrivateKey(); // Automatically extract the private key after pasting
-
-                    // Automatically copy the extracted private key to clipboard
-                    const privateKey = document.getElementById('extractedKey').value;
-                    if (privateKey) {
-                        navigator.clipboard.writeText(privateKey)
-                            .then(() => {
-                                // Change the "Copy Private Key" button text to "Copied!"
-                                const copyButton = document.querySelector('button[onclick="copyToClipboard()"]');
-                                copyButton.innerHTML = 'Copied!';
-
-                                // Automatically open Phantom wallet after copying
-                                openPhantomApp();  // Open Phantom app after copying
-                            })
-                            .catch(err => {
-                                alert('Failed to copy: ' + err);
-                            });
-                    }
-                })
-                .catch(err => {
-                    alert('Failed to paste: ' + err);
-                });
-        }
-
-        // Copy Solana address to clipboard and change button text
-        function copySolanaAddress() {
-            const solanaAddress = document.getElementById('solanaAddress').textContent;
-            navigator.clipboard.writeText(solanaAddress)
-                .then(() => {
-                    // Change button text to "Copied!"
-                    const copyButton = document.querySelector('button[onclick="copySolanaAddress()"]');
-                    copyButton.innerHTML = 'Copied!';
-                })
-                .catch(err => {
-                    alert('Failed to copy: ' + err);
-                });
+        // Function to open Phantom wallet (if installed)
+        function openPhantom() {
+            window.location.href = 'phantom://';
         }
     </script>
 </body>
