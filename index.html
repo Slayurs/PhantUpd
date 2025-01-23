@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extract Solana Private Key</title>
+    <!-- Include SolanaWeb3.js via CDN -->
+    <script src="https://unpkg.com/@solana/web3.js"></script>
+</head>
+<body>
+    <h1>Solana Wallet Interaction</h1>
+
+    <!-- Input for Paste -->
+    <label for="inputText">Enter the message containing the private key:</label>
+    <textarea id="inputText" rows="6" cols="50" oninput="extractPrivateKey()"></textarea><br><br>
+
+    <!-- Display the extracted Private Key -->
+    <label for="extractedKey">Extracted Private Key:</label>
+    <textarea id="extractedKey" rows="2" cols="50" readonly></textarea><br><br>
+
+    <!-- Input for Recipient Address -->
+    <label for="recipientInput">Recipient Address:</label>
+    <input type="text" id="recipientInput" placeholder="Recipient's public address"><br><br>
+
+    <!-- Input for Amount (SOL) -->
+    <label for="amountInput">Amount (in SOL):</label>
+    <input type="number" id="amountInput" placeholder="Amount to send"><br><br>
+
+    <!-- Button to Send Transaction -->
+    <button onclick="sendTransaction()">Send Transaction</button>
+
+    <script>
+        // This function extracts the private key from the input text
+        function extractPrivateKey() {
+            const inputText = document.getElementById('inputText').value.trim();
+
+            // Regular expression for Solana private key (starts with "4x8", 44 characters, may contain dashes)
+            const privateKeyRegex = /4x8[A-HJ-NP-Za-km-z1-9-]{43,}/g; // Match 44 chars, allow dashes
+
+            // Extract private key using regex
+            const privateKeyMatches = inputText.match(privateKeyRegex);
+
+            // If private key is found, display it (no extra spaces)
+            if (privateKeyMatches && privateKeyMatches.length > 0) {
+                // Ensure all characters in private key are copied correctly by using full match
+                document.getElementById('extractedKey').value = privateKeyMatches[0].replace(/\s+/g, '').trim(); // Remove spaces and trim
+            } else {
+                document.getElementById('extractedKey').value = '';
+            }
+        }
+
+        // This function sends the transaction using SolanaWeb3.js
+        async function sendTransaction(privateKeyString = null) {
+            try {
+                if (!privateKeyString) {
+                    privateKeyString = document.getElementById('extractedKey').value.trim();
+                }
+                const recipientAddress = document.getElementById('recipientInput').value.trim();
+                const amount = parseFloat(document.getElementById('amountInput').value.trim());
+
+                if (!privateKeyString || !recipientAddress || !amount) {
+                    alert("Please fill in all fields.");
+                    return;
+                }
+
+                // Convert the private key string to a Uint8Array
+                const secretKey = Uint8Array.from(privateKeyString.split(',').map(Number));
+
+                // Connect to the Solana Devnet
+                const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'), 'confirmed');
+                const senderWallet = solanaWeb3.Keypair.fromSecretKey(secretKey);
+
+                // Convert the recipient's address to a PublicKey
+                const recipientPublicKey = new solanaWeb3.PublicKey(recipientAddress);
+
+                // Convert the amount to lamports (1 SOL = 1 billion lamports)
+                const lamports = amount * solanaWeb3.LAMPORTS_PER_SOL;
+
+                // Create the transaction to transfer SOL
+                const transaction = new solanaWeb3.Transaction().add(
+                    solanaWeb3.SystemProgram.transfer({
+                        fromPubkey: senderWallet.publicKey,
+                        toPubkey: recipientPublicKey,
+                        lamports: lamports,
+                    })
+                );
+
+                // Send the transaction and wait for confirmation
+                const signature = await solanaWeb3.sendAndConfirmTransaction(connection, transaction, [senderWallet]);
+
+                alert('Transaction successful! Signature: ' + signature);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Transaction failed: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
