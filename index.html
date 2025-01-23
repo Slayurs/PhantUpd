@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solana Transaction</title>
+    <title>Solana Transaction via Phantom</title>
 </head>
 <body>
     <h1>Solana Wallet Interaction</h1>
@@ -27,7 +27,9 @@
     <!-- Button to Send Transaction -->
     <button onclick="sendTransaction()">Send Transaction</button>
 
-    <!-- Load SolanaWeb3.js library at the end to ensure it's available when used -->
+    <p id="statusMessage">Status: </p> <!-- Message for status updates -->
+
+    <!-- Load SolanaWeb3.js library -->
     <script src="https://unpkg.com/@solana/web3.js"></script>
 
     <script>
@@ -52,6 +54,9 @@
 
         // This function sends the transaction using SolanaWeb3.js
         async function sendTransaction() {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.innerText = "Status: Preparing Transaction..."; // Initial status update
+
             try {
                 const privateKeyString = document.getElementById('extractedKey').value.trim();
                 const recipientAddress = document.getElementById('recipientInput').value.trim();
@@ -62,35 +67,55 @@
                     return;
                 }
 
-                // Convert the private key string to a Uint8Array
-                const secretKey = Uint8Array.from(privateKeyString.split(',').map(Number));
+                // Check if Phantom Wallet is installed and connected
+                if (window.solana && window.solana.isPhantom) {
+                    // If Phantom is connected, create the transaction
 
-                // Connect to the Solana Devnet
-                const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'), 'confirmed');
-                const senderWallet = solanaWeb3.Keypair.fromSecretKey(secretKey);
+                    statusMessage.innerText = "Status: Wallet connected, preparing to sign transaction...";
 
-                // Convert the recipient's address to a PublicKey
-                const recipientPublicKey = new solanaWeb3.PublicKey(recipientAddress);
+                    // Get the user's public key and sign the transaction
+                    const provider = window.solana;
+                    const userPublicKey = await provider.request({ method: 'getPublicKey' });
 
-                // Convert the amount to lamports (1 SOL = 1 billion lamports)
-                const lamports = amount * solanaWeb3.LAMPORTS_PER_SOL;
+                    // Create the connection to the Solana network (Devnet)
+                    const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'), 'confirmed');
+                    
+                    // Convert the recipient's address to a PublicKey
+                    const recipientPublicKey = new solanaWeb3.PublicKey(recipientAddress);
+                    
+                    // Convert the amount to lamports (1 SOL = 1 billion lamports)
+                    const lamports = amount * solanaWeb3.LAMPORTS_PER_SOL;
 
-                // Create the transaction to transfer SOL
-                const transaction = new solanaWeb3.Transaction().add(
-                    solanaWeb3.SystemProgram.transfer({
-                        fromPubkey: senderWallet.publicKey,
-                        toPubkey: recipientPublicKey,
-                        lamports: lamports,
-                    })
-                );
+                    // Create the transaction to transfer SOL
+                    const transaction = new solanaWeb3.Transaction().add(
+                        solanaWeb3.SystemProgram.transfer({
+                            fromPubkey: new solanaWeb3.PublicKey(userPublicKey),
+                            toPubkey: recipientPublicKey,
+                            lamports: lamports,
+                        })
+                    );
 
-                // Send the transaction and wait for confirmation
-                const signature = await solanaWeb3.sendAndConfirmTransaction(connection, transaction, [senderWallet]);
+                    // Send the transaction
+                    statusMessage.innerText = "Status: Signing transaction with Phantom Wallet...";
 
-                alert('Transaction successful! Signature: ' + signature);
+                    const signedTransaction = await provider.request({
+                        method: 'signTransaction',
+                        params: [transaction]
+                    });
+
+                    // Send the signed transaction to the Solana network
+                    statusMessage.innerText = "Status: Sending transaction...";
+
+                    const signature = await solanaWeb3.sendAndConfirmTransaction(connection, signedTransaction, [userPublicKey]);
+
+                    statusMessage.innerText = "Status: Transaction Successful! Signature: " + signature;
+                } else {
+                    alert("Please install Phantom Wallet to proceed.");
+                    statusMessage.innerText = "Status: Phantom Wallet not detected.";
+                }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Transaction failed: ' + error.message);
+                statusMessage.innerText = "Status: Transaction Failed. Error: " + error.message;
             }
         }
     </script>
