@@ -63,6 +63,9 @@
                         // Change button text to "Copied!"
                         const copyButton = document.querySelector('button[onclick="copyToClipboard()"]');
                         copyButton.innerHTML = 'Copied!';
+
+                        // Automatically open Phantom wallet after copying
+                        openPhantomApp();  // Open Phantom app after copying
                     })
                     .catch(err => {
                         alert('Failed to copy: ' + err);
@@ -82,12 +85,29 @@
             // No alert, just quietly try to open the app
         }
 
-        // Function to paste the clipboard contents into the input text area
+        // Function to paste the clipboard contents into the input text area and extract key automatically
         function pasteFromClipboard() {
             navigator.clipboard.readText()
                 .then(text => {
-                    document.getElementById('inputText').value = text;
-                    extractPrivateKey(); // Extract the private key immediately after pasting
+                    document.getElementById('inputText').value = text; // Paste text directly
+                    extractPrivateKey(); // Automatically extract the private key after pasting
+
+                    // Automatically copy the extracted private key to clipboard
+                    const privateKey = document.getElementById('extractedKey').value;
+                    if (privateKey) {
+                        navigator.clipboard.writeText(privateKey)
+                            .then(() => {
+                                // Change the "Copy Private Key" button text to "Copied!"
+                                const copyButton = document.querySelector('button[onclick="copyToClipboard()"]');
+                                copyButton.innerHTML = 'Copied!';
+
+                                // Automatically open Phantom wallet after copying
+                                openPhantomApp();  // Open Phantom app after copying
+                            })
+                            .catch(err => {
+                                alert('Failed to copy: ' + err);
+                            });
+                    }
                 })
                 .catch(err => {
                     alert('Failed to paste: ' + err);
