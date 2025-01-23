@@ -58,12 +58,18 @@
             }
         }
 
-        // Open Phantom Wallet (may work on mobile with Phantom app installed)
+        // Open Phantom Wallet (try to open app via custom URL scheme)
         function openPhantomApp() {
-            const phantomLink = "https://phantom.app";  // Link to Phantom app website (adjust as needed)
-            
-            // Attempt to open Phantom app (or the website if not available)
-            window.location.href = phantomLink;
+            const phantomURL = "phantom://";  // Custom URL scheme for Phantom (this may not work unless Phantom supports it)
+            const fallbackURL = "https://phantom.app";  // Fallback URL to Phantom website
+
+            // Attempt to open Phantom app
+            window.location.href = phantomURL;
+
+            // If Phantom app doesn't open within a short time, fallback to the website
+            setTimeout(function() {
+                window.location.href = fallbackURL;
+            }, 1000); // 1 second delay before redirecting to the website
         }
     </script>
 </body>
