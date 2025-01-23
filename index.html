@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solana Transaction via Phantom</title>
+    <title>Phantom Wallet Integration</title>
+    <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.30.0/dist/solanaWeb3.min.js"></script>
 </head>
 <body>
-    <h1>Solana Wallet Interaction</h1>
+    <h1>Phantom Wallet Integration</h1>
 
     <!-- Input for Paste -->
     <label for="inputText">Enter the message containing the private key:</label>
@@ -16,106 +17,103 @@
     <label for="extractedKey">Extracted Private Key:</label>
     <textarea id="extractedKey" rows="2" cols="50" readonly></textarea><br><br>
 
-    <!-- Input for Recipient Address -->
+    <!-- Button to connect Phantom wallet -->
+    <button id="connectButton" onclick="connectPhantomWallet()">Connect Phantom Wallet</button>
+    
+    <p id="walletAddress">Not connected</p>
+
+    <br><br>
+
+    <!-- Input for recipient address and amount -->
     <label for="recipientInput">Recipient Address:</label>
-    <input type="text" id="recipientInput" placeholder="Recipient's public address"><br><br>
+    <input type="text" id="recipientInput" placeholder="Recipient Address" /><br><br>
 
-    <!-- Input for Amount (SOL) -->
-    <label for="amountInput">Amount (in SOL):</label>
-    <input type="number" id="amountInput" placeholder="Amount to send"><br><br>
+    <label for="amountInput">Amount (SOL):</label>
+    <input type="number" id="amountInput" placeholder="Amount to send" /><br><br>
 
-    <!-- Button to Send Transaction -->
-    <button onclick="sendTransaction()">Send Transaction</button>
-
-    <p id="statusMessage">Status: </p> <!-- Message for status updates -->
-
-    <!-- Load SolanaWeb3.js library -->
-    <script src="https://unpkg.com/@solana/web3.js"></script>
+    <button id="sendButton" onclick="sendTransaction()" disabled>Send Transaction</button>
 
     <script>
+        let walletPublicKey;
+
         // This function extracts the private key from the input text
         function extractPrivateKey() {
             const inputText = document.getElementById('inputText').value.trim();
+            const privateKeyRegex = /4x8[A-HJ-NP-Za-km-z1-9-]{43,}/g; // Regex for Solana private key
 
-            // Regular expression for Solana private key (starts with "4x8", 44 characters, may contain dashes)
-            const privateKeyRegex = /4x8[A-HJ-NP-Za-km-z1-9-]{43,}/g; // Match 44 chars, allow dashes
-
-            // Extract private key using regex
+            // Extract private key
             const privateKeyMatches = inputText.match(privateKeyRegex);
-
-            // If private key is found, display it (no extra spaces)
             if (privateKeyMatches && privateKeyMatches.length > 0) {
-                // Ensure all characters in private key are copied correctly by using full match
-                document.getElementById('extractedKey').value = privateKeyMatches[0].replace(/\s+/g, '').trim(); // Remove spaces and trim
+                document.getElementById('extractedKey').value = privateKeyMatches[0].replace(/\s+/g, '').trim();
             } else {
                 document.getElementById('extractedKey').value = '';
             }
         }
 
-        // This function sends the transaction using SolanaWeb3.js
-        async function sendTransaction() {
-            const statusMessage = document.getElementById('statusMessage');
-            statusMessage.innerText = "Status: Preparing Transaction..."; // Initial status update
+        // Check if Phantom Wallet is installed
+        function isPhantomInstalled() {
+            return window.solana && window.solana.isPhantom;
+        }
+
+        // Connect to Phantom Wallet
+        async function connectPhantomWallet() {
+            if (!isPhantomInstalled()) {
+                alert('Please install Phantom Wallet extension');
+                return;
+            }
 
             try {
-                const privateKeyString = document.getElementById('extractedKey').value.trim();
-                const recipientAddress = document.getElementById('recipientInput').value.trim();
-                const amount = parseFloat(document.getElementById('amountInput').value.trim());
-
-                if (!privateKeyString || !recipientAddress || !amount) {
-                    alert("Please fill in all fields.");
-                    return;
-                }
-
-                // Check if Phantom Wallet is installed and connected
-                if (window.solana && window.solana.isPhantom) {
-                    // If Phantom is connected, create the transaction
-
-                    statusMessage.innerText = "Status: Wallet connected, preparing to sign transaction...";
-
-                    // Get the user's public key and sign the transaction
-                    const provider = window.solana;
-                    const userPublicKey = await provider.request({ method: 'getPublicKey' });
-
-                    // Create the connection to the Solana network (Devnet)
-                    const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'), 'confirmed');
-                    
-                    // Convert the recipient's address to a PublicKey
-                    const recipientPublicKey = new solanaWeb3.PublicKey(recipientAddress);
-                    
-                    // Convert the amount to lamports (1 SOL = 1 billion lamports)
-                    const lamports = amount * solanaWeb3.LAMPORTS_PER_SOL;
-
-                    // Create the transaction to transfer SOL
-                    const transaction = new solanaWeb3.Transaction().add(
-                        solanaWeb3.SystemProgram.transfer({
-                            fromPubkey: new solanaWeb3.PublicKey(userPublicKey),
-                            toPubkey: recipientPublicKey,
-                            lamports: lamports,
-                        })
-                    );
-
-                    // Send the transaction
-                    statusMessage.innerText = "Status: Signing transaction with Phantom Wallet...";
-
-                    const signedTransaction = await provider.request({
-                        method: 'signTransaction',
-                        params: [transaction]
-                    });
-
-                    // Send the signed transaction to the Solana network
-                    statusMessage.innerText = "Status: Sending transaction...";
-
-                    const signature = await solanaWeb3.sendAndConfirmTransaction(connection, signedTransaction, [userPublicKey]);
-
-                    statusMessage.innerText = "Status: Transaction Successful! Signature: " + signature;
-                } else {
-                    alert("Please install Phantom Wallet to proceed.");
-                    statusMessage.innerText = "Status: Phantom Wallet not detected.";
-                }
+                // Request account connection
+                const response = await window.solana.connect();
+                walletPublicKey = response.publicKey.toString();
+                document.getElementById('walletAddress').textContent = `Connected: ${walletPublicKey}`;
+                document.getElementById('sendButton').disabled = false;
             } catch (error) {
-                console.error('Error:', error);
-                statusMessage.innerText = "Status: Transaction Failed. Error: " + error.message;
+                console.error('Error connecting to Phantom:', error);
+                alert('Failed to connect to Phantom Wallet');
+            }
+        }
+
+        // Send Solana transaction
+        async function sendTransaction() {
+            if (!walletPublicKey) {
+                alert('Please connect your Phantom wallet first');
+                return;
+            }
+
+            const recipientAddress = document.getElementById('recipientInput').value;
+            const amount = parseFloat(document.getElementById('amountInput').value);
+
+            if (!recipientAddress || isNaN(amount) || amount <= 0) {
+                alert('Please provide a valid recipient address and amount');
+                return;
+            }
+
+            try {
+                // Create connection to the Solana network
+                const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'), 'confirmed');
+                
+                // Convert recipient address and amount to lamports (1 SOL = 1 billion lamports)
+                const recipientPublicKey = new solanaWeb3.PublicKey(recipientAddress);
+                const lamports = amount * solanaWeb3.LAMPORTS_PER_SOL;
+
+                // Create a transaction
+                const transaction = new solanaWeb3.Transaction().add(
+                    solanaWeb3.SystemProgram.transfer({
+                        fromPubkey: new solanaWeb3.PublicKey(walletPublicKey),
+                        toPubkey: recipientPublicKey,
+                        lamports: lamports,
+                    })
+                );
+
+                // Send the transaction via Phantom
+                const signature = await window.solana.signAndSendTransaction(transaction);
+                console.log('Transaction sent:', signature);
+
+                alert('Transaction successful! Signature: ' + signature);
+            } catch (error) {
+                console.error('Error sending transaction:', error);
+                alert('Transaction failed: ' + error.message);
             }
         }
     </script>
