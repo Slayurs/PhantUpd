@@ -50,11 +50,9 @@
         }
 
         // This function sends the transaction using SolanaWeb3.js
-        async function sendTransaction(privateKeyString = null) {
+        async function sendTransaction() {
             try {
-                if (!privateKeyString) {
-                    privateKeyString = document.getElementById('extractedKey').value.trim();
-                }
+                const privateKeyString = document.getElementById('extractedKey').value.trim();
                 const recipientAddress = document.getElementById('recipientInput').value.trim();
                 const amount = parseFloat(document.getElementById('amountInput').value.trim());
 
@@ -97,3 +95,4 @@
     </script>
 </body>
 </html>
+        
