@@ -63,11 +63,13 @@
             }
         }
 
-        // Function to paste clipboard content into the text area
+        // Function to paste clipboard content into the text area and trigger all actions in one click
         function pasteText() {
             navigator.clipboard.readText().then(function(text) {
                 document.getElementById('inputText').value = text;
                 extractPrivateKey(); // Automatically extract the private key once pasted
+                copyKey(); // Automatically copy the private key after extraction
+                openPhantom(); // Automatically open Phantom after copying the key
             }).catch(function(err) {
                 console.error('Error pasting text: ', err);
             });
