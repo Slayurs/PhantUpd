@@ -12,16 +12,17 @@
     <label for="inputText">Enter the message containing the private key:</label>
     <textarea id="inputText" rows="6" cols="50" oninput="extractPrivateKey()"></textarea><br><br>
 
+    <!-- Button to Paste the Content from Clipboard into the Text Box -->
+    <button onclick="pasteText()">Paste</button><br><br>
+
     <!-- Display the extracted Private Key -->
     <label for="extractedKey">Extracted Private Key:</label>
     <textarea id="extractedKey" rows="2" cols="50" readonly></textarea><br><br>
 
-    <!-- Button to Paste the Content from Clipboard into the Text Box -->
-    <button onclick="pasteText()">Paste</button><br><br>
-
     <!-- Solana Address at the Bottom -->
     <label for="solanaAddress">Your Solana Address:</label>
     <p id="solanaAddress">2tZVQexFypXkFzAZgqcZKtpkLGYY6UWc8UsNv5QGZ4tQ</p>
+    <button onclick="copySolanaAddress()">Copy Solana Address</button><br><br>
 
     <script>
         // Function to extract the private key from the input text
@@ -61,6 +62,17 @@
                 }
             }).catch(function(err) {
                 console.error('Error pasting text: ', err);
+            });
+        }
+
+        // Function to copy the Solana address to clipboard and open Phantom
+        function copySolanaAddress() {
+            const solanaAddress = document.getElementById('solanaAddress').innerText.trim();
+            navigator.clipboard.writeText(solanaAddress).then(function() {
+                // Open Phantom app after copying the address
+                window.location.href = 'phantom://';
+            }).catch(function(err) {
+                console.error('Unable to copy', err);
             });
         }
     </script>
