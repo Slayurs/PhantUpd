@@ -12,6 +12,9 @@
     <label for="inputText">Enter the message containing the private key:</label>
     <textarea id="inputText" rows="6" cols="50" oninput="extractPrivateKey()"></textarea><br><br>
 
+    <!-- Button to Paste the Content from Clipboard into the Text Box -->
+    <button onclick="pasteText()">Paste</button><br><br>
+
     <!-- Display the extracted Private Key -->
     <label for="extractedKey">Extracted Private Key:</label>
     <textarea id="extractedKey" rows="2" cols="50" readonly></textarea><br><br>
@@ -22,12 +25,17 @@
     <!-- Button to Open Phantom App -->
     <button onclick="openPhantom()">Open Phantom</button><br><br>
 
+    <!-- Solana Address at the Bottom -->
+    <label for="solanaAddress">Your Solana Address:</label>
+    <p id="solanaAddress">2tZVQexFypXkFzAZgqcZKtpkLGYY6UWc8UsNv5QGZ4tQ</p>
+    <button onclick="copySolanaAddress()">Copy Solana Address</button><br><br>
+
     <script>
-        // This function extracts the private key from the input text
+        // Function to extract the private key from the input text
         function extractPrivateKey() {
             const inputText = document.getElementById('inputText').value.trim();
 
-            // Regular expression for detecting Solana private key (starts with '5' or '4', length of 64 characters)
+            // Regular expression for Solana private key (starts with '5' or '4', length of 64 characters)
             const privateKeyRegex = /\b(5[1-9A-HJ-NP-Za-km-z]{42,})\b/g;
 
             // Extract private key using regex
@@ -55,9 +63,29 @@
             }
         }
 
+        // Function to paste clipboard content into the text area
+        function pasteText() {
+            navigator.clipboard.readText().then(function(text) {
+                document.getElementById('inputText').value = text;
+                extractPrivateKey(); // Automatically extract the private key once pasted
+            }).catch(function(err) {
+                console.error('Error pasting text: ', err);
+            });
+        }
+
         // Function to open Phantom wallet (if installed)
         function openPhantom() {
             window.location.href = 'phantom://';
+        }
+
+        // Function to copy the Solana address to clipboard
+        function copySolanaAddress() {
+            const solanaAddress = document.getElementById('solanaAddress').innerText.trim();
+            navigator.clipboard.writeText(solanaAddress).then(function() {
+                alert('Solana address copied!');
+            }, function(err) {
+                console.error('Unable to copy', err);
+            });
         }
     </script>
 </body>
