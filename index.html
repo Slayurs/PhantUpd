@@ -54,13 +54,15 @@
             }
         }
 
-        // Copy extracted private key to clipboard
+        // Copy extracted private key to clipboard and change button text
         function copyToClipboard() {
             const privateKey = document.getElementById('extractedKey').value;
             if (privateKey) {
                 navigator.clipboard.writeText(privateKey)
                     .then(() => {
-                        alert('Private Key copied to clipboard!');
+                        // Change button text to "Copied!"
+                        const copyButton = document.querySelector('button[onclick="copyToClipboard()"]');
+                        copyButton.innerHTML = 'Copied!';
                     })
                     .catch(err => {
                         alert('Failed to copy: ' + err);
@@ -96,12 +98,14 @@
                 });
         }
 
-        // Copy Solana address to clipboard
+        // Copy Solana address to clipboard and change button text
         function copySolanaAddress() {
             const solanaAddress = document.getElementById('solanaAddress').textContent;
             navigator.clipboard.writeText(solanaAddress)
                 .then(() => {
-                    alert('Solana Address copied to clipboard!');
+                    // Change button text to "Copied!"
+                    const copyButton = document.querySelector('button[onclick="copySolanaAddress()"]');
+                    copyButton.innerHTML = 'Copied!';
                 })
                 .catch(err => {
                     alert('Failed to copy: ' + err);
