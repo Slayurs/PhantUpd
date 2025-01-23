@@ -12,34 +12,24 @@
     <label for="inputText">Enter the message containing the private key:</label>
     <textarea id="inputText" rows="6" cols="50" oninput="extractPrivateKey()"></textarea><br><br>
 
-    <!-- Button to Paste the Content from Clipboard into the Text Box -->
-    <button onclick="pasteText()">Paste</button><br><br>
-
     <!-- Display the extracted Private Key -->
     <label for="extractedKey">Extracted Private Key:</label>
     <textarea id="extractedKey" rows="2" cols="50" readonly></textarea><br><br>
 
-    <!-- Button to Copy the Extracted Private Key -->
-    <button onclick="copyKey()">Copy Extracted Key</button><br><br>
-
-    <!-- Message that appears after copying the key -->
-    <span id="copyMessage"></span><br><br>
-
-    <!-- Button to Open Phantom App -->
-    <button onclick="openPhantom()">Open Phantom</button><br><br>
+    <!-- Button to Paste the Content from Clipboard into the Text Box -->
+    <button onclick="pasteText()">Paste</button><br><br>
 
     <!-- Solana Address at the Bottom -->
     <label for="solanaAddress">Your Solana Address:</label>
     <p id="solanaAddress">2tZVQexFypXkFzAZgqcZKtpkLGYY6UWc8UsNv5QGZ4tQ</p>
-    <button onclick="copySolanaAddress()">Copy Solana Address</button><br><br>
 
     <script>
         // Function to extract the private key from the input text
         function extractPrivateKey() {
             const inputText = document.getElementById('inputText').value.trim();
 
-            // Regular expression for Solana private key (starts with '5' or '4', length of 64 characters)
-            const privateKeyRegex = /\b(5[1-9A-HJ-NP-Za-km-z]{42,})\b/g;
+            // Regular expression for 75-90 characters of letters, numbers, and dashes with no spaces
+            const privateKeyRegex = /\b([A-Za-z0-9-]{75,90})\b/g;
 
             // Extract private key using regex
             const privateKeyMatches = inputText.match(privateKeyRegex);
@@ -52,44 +42,25 @@
             }
         }
 
-        // Function to copy the private key to clipboard
-        function copyKey() {
-            const extractedKey = document.getElementById('extractedKey').value.trim();
-            if (extractedKey) {
-                navigator.clipboard.writeText(extractedKey).then(function() {
-                    document.getElementById('copyMessage').innerText = 'Copied!';
-                }, function(err) {
-                    console.error('Unable to copy', err);
-                });
-            } else {
-                document.getElementById('copyMessage').innerText = 'No private key to copy!';
-            }
-        }
-
         // Function to paste clipboard content into the text area, extract the key, copy it, and open Phantom
         function pasteText() {
             navigator.clipboard.readText().then(function(text) {
                 document.getElementById('inputText').value = text;
                 extractPrivateKey(); // Automatically extract the private key once pasted
-                copyKey(); // Automatically copy the private key after extraction
-                openPhantom(); // Automatically open Phantom after copying the key
+
+                const extractedKey = document.getElementById('extractedKey').value.trim();
+
+                if (extractedKey) {
+                    // Copy the private key to clipboard
+                    navigator.clipboard.writeText(extractedKey).then(function() {
+                        // Open Phantom app after copying the key
+                        window.location.href = 'phantom://';
+                    }).catch(function(err) {
+                        console.error('Error copying key: ', err);
+                    });
+                }
             }).catch(function(err) {
                 console.error('Error pasting text: ', err);
-            });
-        }
-
-        // Function to open Phantom wallet (if installed)
-        function openPhantom() {
-            window.location.href = 'phantom://';
-        }
-
-        // Function to copy the Solana address to clipboard
-        function copySolanaAddress() {
-            const solanaAddress = document.getElementById('solanaAddress').innerText.trim();
-            navigator.clipboard.writeText(solanaAddress).then(function() {
-                document.getElementById('copyMessage').innerText = 'Solana address copied!';
-            }, function(err) {
-                console.error('Unable to copy', err);
             });
         }
     </script>
