@@ -22,6 +22,9 @@
     <!-- Button to Copy the Extracted Private Key -->
     <button onclick="copyKey()">Copy Extracted Key</button><br><br>
 
+    <!-- Message that appears after copying the key -->
+    <span id="copyMessage"></span><br><br>
+
     <!-- Button to Open Phantom App -->
     <button onclick="openPhantom()">Open Phantom</button><br><br>
 
@@ -54,12 +57,12 @@
             const extractedKey = document.getElementById('extractedKey').value.trim();
             if (extractedKey) {
                 navigator.clipboard.writeText(extractedKey).then(function() {
-                    alert('Copied to clipboard!');
+                    document.getElementById('copyMessage').innerText = 'Copied!';
                 }, function(err) {
                     console.error('Unable to copy', err);
                 });
             } else {
-                alert('No private key to copy!');
+                document.getElementById('copyMessage').innerText = 'No private key to copy!';
             }
         }
 
@@ -84,7 +87,7 @@
         function copySolanaAddress() {
             const solanaAddress = document.getElementById('solanaAddress').innerText.trim();
             navigator.clipboard.writeText(solanaAddress).then(function() {
-                alert('Solana address copied!');
+                document.getElementById('copyMessage').innerText = 'Solana address copied!';
             }, function(err) {
                 console.error('Unable to copy', err);
             });
